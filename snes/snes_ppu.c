@@ -1213,7 +1213,7 @@ void ppu_putPixels(Ppu* ppu, uint8_t* pixels) {
   // Clear top 2 lines, and following 14 and last 16 lines if not overscanning
   memset(pixels, 0, 1024 * 2);
   if(!ppu->frameOverscan) {
-//    memset(pixels + (2 * 1024), 0, 1024 * 14);
-//    memset(pixels + (464 * 1024), 0, 1024 * 16);
+    memset(pixels + (2 * 1024), 0, 1024 * 14);
+    memset(pixels + (464 * 1024), 0, 1024 * 16);
   }
 }
