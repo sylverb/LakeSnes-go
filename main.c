@@ -419,7 +419,7 @@ static void loadRom(const char* path) {
       free(saveData);
     }
   } // else, rom load failed, old rom still loaded
-  free(file);
+//  free(file); do not free file, it is used by snes_loadRom
 }
 
 static void closeRom() {

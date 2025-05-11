@@ -86,9 +86,9 @@ void cart_handleState(Cart* cart, StateHandler* sh) {
 void cart_load(Cart* cart, int type, uint8_t* rom, int romSize, int ramSize, bool hasBattery) {
   cart->type = type;
   cart->hasBattery = hasBattery;
-  if(cart->rom != NULL) free(cart->rom);
   if(cart->ram != NULL) free(cart->ram);
 #ifndef TARGET_GNW
+  if(cart->rom != NULL) free(cart->rom);
   cart->rom = malloc(romSize);
 #else
   cart->rom = rom;
