@@ -66,15 +66,25 @@ static void dsp_decodeBrr(Dsp* dsp, int ch);
 static int16_t dsp_getSample(Dsp* dsp, int ch);
 static void dsp_handleNoise(Dsp* dsp);
 
+#ifdef TARGET_GNW
+static Dsp g_static_dsp;
+#endif
+
 Dsp* dsp_init(Apu* apu) {
+#ifndef TARGET_GNW
   Dsp* dsp = malloc(sizeof(Dsp));
+#else
+  Dsp* dsp = &g_static_dsp;
+#endif
   dsp->apu = apu;
   return dsp;
 }
 
+#ifndef TARGET_GNW
 void dsp_free(Dsp* dsp) {
   free(dsp);
 }
+#endif
 
 void dsp_reset(Dsp* dsp) {
   memset(dsp->ram, 0, sizeof(dsp->ram));

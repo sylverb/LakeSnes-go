@@ -9,6 +9,9 @@
 #include "snes.h"
 #include "statehandler.h"
 #include "cx4.h"
+#if defined(TARGET_GNW) && !defined(LINUX_EMU)
+#include "gw_malloc.h"
+#endif
 
 static uint8_t cart_readLorom(Cart* cart, uint8_t bank, uint16_t adr);
 static void cart_writeLorom(Cart* cart, uint8_t bank, uint16_t adr, uint8_t val);
@@ -18,8 +21,16 @@ static void cart_writeHirom(Cart* cart, uint8_t bank, uint16_t adr, uint8_t val)
 static uint8_t cart_readCX4(Cart* cart, uint8_t bank, uint16_t adr);
 static void cart_writeCX4(Cart* cart, uint8_t bank, uint16_t adr, uint8_t val);
 
+#ifdef TARGET_GNW
+static Cart g_static_cart;
+#endif
+
 Cart* cart_init(Snes* snes) {
+#ifndef TARGET_GNW
   Cart* cart = malloc(sizeof(Cart));
+#else
+  Cart* cart = &g_static_cart;
+#endif
   cart->snes = snes;
   cart->type = 0;
   cart->hasBattery = 0;
@@ -30,11 +41,13 @@ Cart* cart_init(Snes* snes) {
   return cart;
 }
 
+#ifndef TARGET_GNW
 void cart_free(Cart* cart) {
   if(cart->rom != NULL) free(cart->rom);
   if(cart->ram != NULL) free(cart->ram);
   free(cart);
 }
+#endif
 
 void cart_reset(Cart* cart) {
   // do not reset ram, assumed to be battery backed
@@ -75,16 +88,26 @@ void cart_load(Cart* cart, int type, uint8_t* rom, int romSize, int ramSize, boo
   cart->hasBattery = hasBattery;
   if(cart->rom != NULL) free(cart->rom);
   if(cart->ram != NULL) free(cart->ram);
+#ifndef TARGET_GNW
   cart->rom = malloc(romSize);
+#else
+  cart->rom = rom;
+#endif
   cart->romSize = romSize;
   if(ramSize > 0) {
+#if !defined(TARGET_GNW) || defined(LINUX_EMU)
     cart->ram = malloc(ramSize);
     memset(cart->ram, 0, ramSize);
+#else
+    cart->ram = itc_malloc(ramSize);
+#endif
   } else {
     cart->ram = NULL;
   }
   cart->ramSize = ramSize;
+#ifndef TARGET_GNW
   memcpy(cart->rom, rom, romSize);
+#endif
 }
 
 bool cart_handleBattery(Cart* cart, bool save, uint8_t* data, int* size) {

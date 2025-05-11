@@ -28,10 +28,18 @@ static void cpu_writeWord(Cpu* cpu, uint32_t adrl, uint32_t adrh, uint16_t value
 static void cpu_doInterrupt(Cpu* cpu);
 static void cpu_doOpcode(Cpu* cpu, uint8_t opcode);
 
+#ifdef TARGET_GNW
+static Cpu g_static_cpu;
+#endif
+
 // addressing modes and opcode functions not declared, only used after defintions
 
 Cpu* cpu_init(void* mem, CpuReadHandler read, CpuWriteHandler write, CpuIdleHandler idle) {
+#ifndef TARGET_GNW
   Cpu* cpu = malloc(sizeof(Cpu));
+#else
+  Cpu* cpu = &g_static_cpu;
+#endif
   cpu->mem = mem;
   cpu->read = read;
   cpu->write = write;
@@ -39,9 +47,11 @@ Cpu* cpu_init(void* mem, CpuReadHandler read, CpuWriteHandler write, CpuIdleHand
   return cpu;
 }
 
+#ifndef TARGET_GNW
 void cpu_free(Cpu* cpu) {
   free(cpu);
 }
+#endif
 
 void cpu_reset(Cpu* cpu, bool hard) {
   if(hard) {

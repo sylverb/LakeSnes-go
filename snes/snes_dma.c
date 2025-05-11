@@ -30,15 +30,25 @@ static void dma_doDma(Dma* dma, int cpuCycles);
 static void dma_initHdma(Dma* dma, bool doSync, int cpuCycles);
 static void dma_doHdma(Dma* dma, bool doSync, int cpuCycles);
 
+#ifdef TARGET_GNW
+static Dma g_static_dma;
+#endif
+
 Dma* dma_init(Snes* snes) {
+#ifndef TARGET_GNW
   Dma* dma = malloc(sizeof(Dma));
+#else
+  Dma* dma = &g_static_dma;
+#endif
   dma->snes = snes;
   return dma;
 }
 
+#ifndef TARGET_GNW
 void dma_free(Dma* dma) {
   free(dma);
 }
+#endif
 
 void dma_reset(Dma* dma) {
   for(int i = 0; i < 8; i++) {

@@ -13,7 +13,7 @@ appsdlflags = -framework SDL2 -F sdl2 -rpath @executable_path/../Frameworks
 
 winexecname = lakesnes.exe
 
-cfiles = snes/spc.c snes/dsp.c snes/apu.c snes/cpu.c snes/dma.c snes/ppu.c snes/cart.c snes/cx4.c snes/input.c snes/statehandler.c snes/snes.c snes/snes_other.c \
+cfiles = snes/snes_spc.c snes/snes_dsp.c snes/snes_apu.c snes/snes_cpu.c snes/snes_dma.c snes/snes_ppu.c snes/snes_cart.c snes/snes_cx4.c snes/snes_input.c snes/snes_statehandler.c snes/snes.c snes/snes_other.c \
  zip/zip.c tracing.c main.c
 hfiles = snes/spc.h snes/dsp.h snes/apu.h snes/cpu.h snes/dma.h snes/ppu.h snes/cart.h snes/cx4.h snes/input.h snes/statehandler.h snes/snes.h \
  zip/zip.h zip/miniz.h tracing.h
@@ -23,7 +23,7 @@ hfiles = snes/spc.h snes/dsp.h snes/apu.h snes/cpu.h snes/dma.h snes/ppu.h snes/
 all: $(execname)
 
 $(execname): $(cfiles) $(hfiles)
-	$(CC) $(CFLAGS) -o $@ $(cfiles) $(sdlflags)
+	$(CC) $(CFLAGS) -o $@ $(cfiles) $(sdlflags)  -DTARGET_GNW -DLINUX_EMU
 
 $(appexecname): $(cfiles) $(hfiles)
 	$(CC) $(CFLAGS) -o $@ $(cfiles) $(appsdlflags) -D SDL2SUBDIR

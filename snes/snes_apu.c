@@ -11,6 +11,10 @@
 #include "dsp.h"
 #include "statehandler.h"
 
+#ifdef TARGET_GNW
+static Apu g_static_apu;
+#endif
+
 static uint8_t bootRom[0x40]; // algorithmically constructed
 
 static const uint8_t iplDeltas[0x40] = {
@@ -46,7 +50,11 @@ static void ipl_create() {
 }
 
 Apu* apu_init(Snes* snes) {
+#ifndef TARGET_GNW
   Apu* apu = malloc(sizeof(Apu));
+#else
+  Apu* apu = &g_static_apu;
+#endif
   apu->snes = snes;
   apu->spc = spc_init(apu, apu_spcRead, apu_spcWrite, apu_spcIdle);
   apu->dsp = dsp_init(apu);
@@ -54,11 +62,13 @@ Apu* apu_init(Snes* snes) {
   return apu;
 }
 
+#ifndef TARGET_GNW
 void apu_free(Apu* apu) {
   spc_free(apu->spc);
   dsp_free(apu->dsp);
   free(apu);
 }
+#endif
 
 void apu_reset(Apu* apu) {
   // TODO: hard reset for apu

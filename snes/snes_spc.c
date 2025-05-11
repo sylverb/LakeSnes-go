@@ -26,10 +26,18 @@ static uint16_t spc_readWord(Spc* spc, uint16_t adrl, uint16_t adrh);
 static void spc_writeWord(Spc* spc, uint16_t adrl, uint16_t adrh, uint16_t value);
 static void spc_doOpcode(Spc* spc, uint8_t opcode);
 
+#ifdef TARGET_GNW
+static Spc g_static_spc;
+#endif
+
 // addressing modes and opcode functions not declared, only used after defintions
 
 Spc* spc_init(void* mem, SpcReadHandler read, SpcWriteHandler write, SpcIdleHandler idle) {
+#ifndef TARGET_GNW
   Spc* spc = malloc(sizeof(Spc));
+#else
+  Spc* spc = &g_static_spc;
+#endif
   spc->mem = mem;
   spc->read = read;
   spc->write = write;
@@ -37,9 +45,11 @@ Spc* spc_init(void* mem, SpcReadHandler read, SpcWriteHandler write, SpcIdleHand
   return spc;
 }
 
+#ifndef TARGET_GNW
 void spc_free(Spc* spc) {
   free(spc);
 }
+#endif
 
 void spc_reset(Spc* spc, bool hard) {
   if(hard) {

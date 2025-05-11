@@ -28,8 +28,16 @@ static void free_accesstime();
 
 static uint8_t *access_time;
 
+#ifdef TARGET_GNW
+static Snes g_static_snes;
+#endif
+
 Snes* snes_init(void) {
+#ifndef TARGET_GNW
   Snes* snes = malloc(sizeof(Snes));
+#else
+  Snes* snes = &g_static_snes;
+#endif
   snes->cpu = cpu_init(snes, snes_cpuRead, snes_cpuWrite, snes_cpuIdle);
   snes->apu = apu_init(snes);
   snes->dma = dma_init(snes);
@@ -42,6 +50,7 @@ Snes* snes_init(void) {
 }
 
 void snes_free(Snes* snes) {
+#ifndef TARGET_GNW
   cpu_free(snes->cpu);
   apu_free(snes->apu);
   dma_free(snes->dma);
@@ -51,6 +60,7 @@ void snes_free(Snes* snes) {
   input_free(snes->input2);
   free_accesstime();
   free(snes);
+#endif
 }
 
 void snes_reset(Snes* snes, bool hard) {

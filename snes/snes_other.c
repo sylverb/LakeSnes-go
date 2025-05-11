@@ -86,6 +86,7 @@ bool snes_loadRom(Snes* snes, const uint8_t* data, int length) {
     return false;
   }
   // expand to a power of 2
+#ifndef TARGET_GNW
   int newLength = 0x8000;
   while(true) {
     if(length <= newLength) {
@@ -103,6 +104,10 @@ bool snes_loadRom(Snes* snes, const uint8_t* data, int length) {
     }
     test *= 2;
   }
+#else
+  int newLength = length;
+  uint8_t* newData = (uint8_t*)data;
+#endif
   // coprocessor check
   if (headers[used].exCoprocessor == 0x10) {
     headers[used].cartType = 4; // cx4
@@ -131,7 +136,9 @@ bool snes_loadRom(Snes* snes, const uint8_t* data, int length) {
   }
   snes_reset(snes, true); // reset after loading
   snes->palTiming = headers[used].pal; // set region
+#ifndef TARGET_GNW
   free(newData);
+#endif
   return true;
 }
 

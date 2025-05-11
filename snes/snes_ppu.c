@@ -83,15 +83,25 @@ static bool ppu_getWindowState(Ppu* ppu, int layer, int x);
 static void ppu_evaluateSprites(Ppu* ppu, int line);
 static uint16_t ppu_getVramRemap(Ppu* ppu);
 
+#ifdef TARGET_GNW
+static Ppu g_static_ppu;
+#endif
+
 Ppu* ppu_init(Snes* snes) {
+#ifndef TARGET_GNW
   Ppu* ppu = malloc(sizeof(Ppu));
+#else
+  Ppu* ppu = &g_static_ppu;
+#endif
   ppu->snes = snes;
   return ppu;
 }
 
+#ifndef TARGET_GNW
 void ppu_free(Ppu* ppu) {
   free(ppu);
 }
+#endif
 
 void ppu_reset(Ppu* ppu) {
   // create brightness and color clamp LUTs (rendering opti)
