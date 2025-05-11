@@ -1,4 +1,3 @@
-
 #ifndef PPU_H
 #define PPU_H
 
@@ -124,9 +123,9 @@ struct Ppu {
   bool countersLatched;
   uint8_t ppu1openBus;
   uint8_t ppu2openBus;
-  // pixel buffer (xbgr)
+  // pixel buffer (RGB565)
   // times 2 for even and odd frame
-  uint8_t pixelBuffer[512 * 4 * 239 * 2];
+  uint8_t pixelBuffer[512 * 2 * 239 * 2];  // 512 pixels wide, 2 bytes per pixel (RGB565), 239 lines, 2 frames
 };
 
 Ppu* ppu_init(Snes* snes);

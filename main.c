@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -88,7 +87,7 @@ int main(int argc, char** argv) {
     return 1;
   }
   SDL_RenderSetLogicalSize(glb.renderer, 512, 480); // preserve aspect ratio
-  glb.texture = SDL_CreateTexture(glb.renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 512, 480);
+  glb.texture = SDL_CreateTexture(glb.renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 512, 480);
   if(glb.texture == NULL) {
     printf("Failed to create texture: %s\n", SDL_GetError());
     return 1;

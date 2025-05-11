@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -307,11 +306,9 @@ void ppu_runLine(Ppu* ppu, int line) {
   // actual line
   if(ppu->mode == 7) ppu_calculateMode7Starts(ppu, line);
   layerCache[0] = layerCache[1] = layerCache[2] = layerCache[3] = -1;
-  for(int x = 0; x < 256; x+=4) {
+  for(int x = 0; x < 256; x+=2) {
     ppu_handlePixel(ppu, x + 0, line);
     ppu_handlePixel(ppu, x + 1, line);
-    ppu_handlePixel(ppu, x + 2, line);
-    ppu_handlePixel(ppu, x + 3, line);
   }
 }
 
@@ -404,15 +401,23 @@ static void ppu_handlePixel(Ppu* ppu, int x, int y) {
       r2 = r; g2 = g; b2 = b;
     }
   }
-  uint32_t *dest = (uint32_t*)&ppu->pixelBuffer[((y - 1) + (ppu->evenFrame ? 0 : 239)) * 2048 + x * 8];
+  uint16_t *dest = (uint16_t*)&ppu->pixelBuffer[((y - 1) + (ppu->evenFrame ? 0 : 239)) * 1024 + x * 4];
 
-  dest[0] = ((((b2 << 3) | (b2 >> 2)) * bright_now) >> 16) << 0 |
-            ((((g2 << 3) | (g2 >> 2)) * bright_now) >> 16) << 8 |
-            ((((r2 << 3) | (r2 >> 2)) * bright_now) >> 16) << 16;
+  // Convert to RGB565 with proper scaling
+  uint16_t rgb565 = ((r2 & 0x1F) << 11) |  // Red: 5 bits
+                    ((g2 & 0x1F) << 6) |    // Green: 6 bits (shifted by 6 to leave room for blue)
+                    (b2 & 0x1F);            // Blue: 5 bits
 
-  dest[1] = ((((b << 3) | (b >> 2)) * bright_now) >> 16) << 0 |
-            ((((g << 3) | (g >> 2)) * bright_now) >> 16) << 8 |
-            ((((r << 3) | (r >> 2)) * bright_now) >> 16) << 16;
+  // Store as RGB565 word
+  dest[0] = rgb565;
+
+  // Convert to RGB565 for second pixel
+  rgb565 = ((r & 0x1F) << 11) |    // Red: 5 bits
+           ((g & 0x1F) << 6) |      // Green: 6 bits
+           (b & 0x1F);              // Blue: 5 bits
+
+  // Store as RGB565 word
+  dest[1] = rgb565;
 }
 
 static int ppu_getPixel(Ppu* ppu, int x, int y, bool sub, int* r, int* g, int* b) {
@@ -1201,13 +1206,14 @@ void ppu_putPixels(Ppu* ppu, uint8_t* pixels) {
       y1 = y + (ppu->evenFrame ? 0 : 239);
       y2 = y1;
     }
-    memcpy(pixels + (dest * 2048), &ppu->pixelBuffer[y1 * 2048], 2048);
-    memcpy(pixels + ((dest + 1) * 2048), &ppu->pixelBuffer[y2 * 2048], 2048);
+    // Copy line with correct stride
+    memcpy(pixels + (dest * 1024), &ppu->pixelBuffer[y1 * 1024], 1024);
+    memcpy(pixels + ((dest + 1) * 1024), &ppu->pixelBuffer[y2 * 1024], 1024);
   }
-  // clear top 2 lines, and following 14 and last 16 lines if not overscanning
-  memset(pixels, 0, 2048 * 2);
+  // Clear top 2 lines, and following 14 and last 16 lines if not overscanning
+  memset(pixels, 0, 1024 * 2);
   if(!ppu->frameOverscan) {
-    memset(pixels + (2 * 2048), 0, 2048 * 14);
-    memset(pixels + (464 * 2048), 0, 2048 * 16);
+//    memset(pixels + (2 * 1024), 0, 1024 * 14);
+//    memset(pixels + (464 * 1024), 0, 1024 * 16);
   }
 }
