@@ -23,10 +23,12 @@ static uint8_t snes_readReg(Snes* snes, uint16_t adr);
 static void snes_writeReg(Snes* snes, uint16_t adr, uint8_t val);
 static uint8_t snes_rread(Snes* snes, uint32_t adr); // wrapped by read, to set open bus
 static int snes_getAccessTime(Snes* snes, uint32_t adr);
+#ifndef TARGET_GNW
 static void build_accesstime(Snes* snes, bool recalc);
 static void free_accesstime();
 
 static uint8_t *access_time;
+#endif
 
 #ifdef TARGET_GNW
 static Snes g_static_snes;
@@ -99,7 +101,9 @@ void snes_reset(Snes* snes, bool hard) {
   snes->fastMem = false;
   snes->openBus = 0;
   snes->nextHoriEvent = 16;
+#ifndef TARGET_GNW
   build_accesstime(snes, false);
+#endif
 }
 
 void snes_handleState(Snes* snes, StateHandler* sh) {
@@ -469,7 +473,9 @@ static void snes_writeReg(Snes* snes, uint16_t adr, uint8_t val) {
     case 0x420d: {
       if (snes->fastMem != (val & 0x1)) {
         snes->fastMem = val & 0x1;
+#ifndef TARGET_GNW
         build_accesstime(snes, true);
+#endif
       }
       break;
     }
@@ -551,6 +557,7 @@ static int snes_getAccessTime(Snes* snes, uint32_t adr) {
   return (snes->fastMem && bank >= 0x80) ? 6 : 8; // depends on setting in banks 80+
 }
 
+#ifndef TARGET_GNW
 static void build_accesstime(Snes* snes, bool recalc) {
   int start = (recalc) ? 0x800000 : 0; // recalc only updates "fastMem" area
   if (access_time == NULL) {
@@ -564,6 +571,7 @@ static void build_accesstime(Snes* snes, bool recalc) {
 static void free_accesstime() {
   free(access_time);
 }
+#endif
 
 uint8_t snes_read(Snes* snes, uint32_t adr) {
   uint8_t val = snes_rread(snes, adr);
@@ -579,7 +587,7 @@ void snes_cpuIdle(void* mem, bool waiting) {
 
 uint8_t snes_cpuRead(void* mem, uint32_t adr) {
   Snes* snes = (Snes*) mem;
-  const int cycles = access_time[adr] - 4;
+  const int cycles = snes_getAccessTime(snes, adr) - 4;
   dma_handleDma(snes->dma, cycles + 4);
   snes_runCycles(snes, cycles);
   uint8_t rv = snes_read(snes, adr);
@@ -589,7 +597,7 @@ uint8_t snes_cpuRead(void* mem, uint32_t adr) {
 
 void snes_cpuWrite(void* mem, uint32_t adr, uint8_t val) {
   Snes* snes = (Snes*) mem;
-  const int cycles = access_time[adr];
+  const int cycles = snes_getAccessTime(snes, adr);
   dma_handleDma(snes->dma, cycles);
   snes_runCycles(snes, cycles);
   snes_write(snes, adr, val);
