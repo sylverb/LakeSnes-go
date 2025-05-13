@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     printf("Failed to init SDL: %s\n", SDL_GetError());
     return 1;
   }
-  glb.window = SDL_CreateWindow("LakeSnes", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 512, 480, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+  glb.window = SDL_CreateWindow("LakeSnes", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 320, 240, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
   if(glb.window == NULL) {
     printf("Failed to create window: %s\n", SDL_GetError());
     return 1;
@@ -86,8 +86,8 @@ int main(int argc, char** argv) {
     printf("Failed to create renderer: %s\n", SDL_GetError());
     return 1;
   }
-  SDL_RenderSetLogicalSize(glb.renderer, 512, 480); // preserve aspect ratio
-  glb.texture = SDL_CreateTexture(glb.renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 512, 256);
+  SDL_RenderSetLogicalSize(glb.renderer, 320, 240); // preserve aspect ratio
+  glb.texture = SDL_CreateTexture(glb.renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 320, 240);
   if(glb.texture == NULL) {
     printf("Failed to create texture: %s\n", SDL_GetError());
     return 1;

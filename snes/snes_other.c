@@ -160,7 +160,7 @@ void snes_setButtonState(Snes* snes, int player, int button, bool pressed) {
 }
 
 void snes_setPixels(Snes* snes, uint8_t* pixelData) {
-  // size is 4 (rgba) * 512 (w) * 480 (h)
+  // size is 2 (rgb565) * 256 (w) * 240 (h)
   ppu_putPixels(snes->ppu, pixelData);
 }
 

@@ -1199,32 +1199,30 @@ void ppu_write(Ppu* ppu, uint8_t adr, uint8_t val) {
 
 void ppu_putPixels(Ppu* ppu, uint8_t* pixels) {
   for(int y = 0; y < (ppu->frameOverscan ? 239 : 224); y++) {
-    int dest = y * 2 + (ppu->frameOverscan ? 2 : 16);
+    int dest = y + (ppu->frameOverscan ? 2 : 16);
     int y1 = y, y2 = y + 239;
     if(!ppu->frameInterlace) {
       y1 = y + (ppu->evenFrame ? 0 : 239);
       y2 = y1;
     }
-    // Copy line with horizontal doubling
+    // Copy line without horizontal doubling
     uint16_t* src = (uint16_t*)&ppu->pixelBuffer[y1 * 512];
-    uint16_t* dst = (uint16_t*)(pixels + (dest * 512));
+    uint16_t* dst = (uint16_t*)(pixels + (dest * 320 * 2));
     for(int x = 0; x < 256; x++) {
-      dst[x * 2] = src[x];
-      dst[x * 2 + 1] = src[x];
+      dst[x] = src[x];
     }
     if(y1 != y2) {
       src = (uint16_t*)&ppu->pixelBuffer[y2 * 512];
-      dst = (uint16_t*)(pixels + ((dest + 1) * 512));
+      dst = (uint16_t*)(pixels + ((dest + 1) * 320 * 2));
       for(int x = 0; x < 256; x++) {
-        dst[x * 2] = src[x];
-        dst[x * 2 + 1] = src[x];
+        dst[x] = src[x];
       }
     }
   }
   // Clear top 2 lines, and following 14 and last 16 lines if not overscanning
-  memset(pixels, 0, 512 * 2);
+  memset(pixels, 0, 320 * 2 * 2);
   if(!ppu->frameOverscan) {
-    memset(pixels + (2 * 512), 0, 512 * 14);
-    memset(pixels + (464 * 512), 0, 512 * 16);
+    memset(pixels + (2 * 320 * 2), 0, 320 * 2 * 14);
+    memset(pixels + (224 * 320 * 2), 0, 320 * 2 * 16);
   }
 } 
