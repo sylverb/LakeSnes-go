@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
     return 1;
   }
   SDL_RenderSetLogicalSize(glb.renderer, 512, 480); // preserve aspect ratio
-  glb.texture = SDL_CreateTexture(glb.renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 512, 480);
+  glb.texture = SDL_CreateTexture(glb.renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 512, 256);
   if(glb.texture == NULL) {
     printf("Failed to create texture: %s\n", SDL_GetError());
     return 1;
@@ -334,6 +334,10 @@ static void renderScreen() {
   }
   snes_setPixels(glb.snes, (uint8_t*) pixels);
   SDL_UnlockTexture(glb.texture);
+  
+  SDL_RenderClear(glb.renderer);
+  SDL_RenderCopy(glb.renderer, glb.texture, NULL, NULL);
+  SDL_RenderPresent(glb.renderer);
 }
 
 static void handleInput(int keyCode, bool pressed) {

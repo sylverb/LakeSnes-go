@@ -125,7 +125,7 @@ struct Ppu {
   uint8_t ppu2openBus;
   // pixel buffer (RGB565)
   // times 2 for even and odd frame
-  uint8_t pixelBuffer[512 * 2 * 239 * 2];  // 512 pixels wide, 2 bytes per pixel (RGB565), 239 lines, 2 frames
+  uint8_t pixelBuffer[256 * 2 * 239 * 2];  // 256 pixels wide, 2 bytes per pixel (RGB565), 239 lines, 2 frames
 };
 
 Ppu* ppu_init(Snes* snes);

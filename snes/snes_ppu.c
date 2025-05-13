@@ -306,9 +306,8 @@ void ppu_runLine(Ppu* ppu, int line) {
   // actual line
   if(ppu->mode == 7) ppu_calculateMode7Starts(ppu, line);
   layerCache[0] = layerCache[1] = layerCache[2] = layerCache[3] = -1;
-  for(int x = 0; x < 256; x+=2) {
-    ppu_handlePixel(ppu, x + 0, line);
-    ppu_handlePixel(ppu, x + 1, line);
+  for(int x = 0; x < 256; x++) {
+    ppu_handlePixel(ppu, x, line);
   }
 }
 
@@ -401,23 +400,16 @@ static void ppu_handlePixel(Ppu* ppu, int x, int y) {
       r2 = r; g2 = g; b2 = b;
     }
   }
-  uint16_t *dest = (uint16_t*)&ppu->pixelBuffer[((y - 1) + (ppu->evenFrame ? 0 : 239)) * 1024 + x * 4];
+
+  uint16_t *dest = (uint16_t*)&ppu->pixelBuffer[((y - 1) + (ppu->evenFrame ? 0 : 239)) * 256 * sizeof(uint16_t) + x * sizeof(uint16_t)];
 
   // Convert to RGB565 with proper scaling
-  uint16_t rgb565 = ((r2 & 0x1F) << 11) |  // Red: 5 bits
-                    ((g2 & 0x1F) << 6) |    // Green: 6 bits (shifted by 6 to leave room for blue)
-                    (b2 & 0x1F);            // Blue: 5 bits
+  uint16_t rgb565 = ((r & 0x1F) << 11) |  // Red: 5 bits
+                    ((g & 0x1F) << 6) |    // Green: 6 bits (shifted by 6 to leave room for blue)
+                    (b & 0x1F);            // Blue: 5 bits
 
   // Store as RGB565 word
-  dest[0] = rgb565;
-
-  // Convert to RGB565 for second pixel
-  rgb565 = ((r & 0x1F) << 11) |    // Red: 5 bits
-           ((g & 0x1F) << 6) |      // Green: 6 bits
-           (b & 0x1F);              // Blue: 5 bits
-
-  // Store as RGB565 word
-  dest[1] = rgb565;
+  *dest = rgb565;
 }
 
 static int ppu_getPixel(Ppu* ppu, int x, int y, bool sub, int* r, int* g, int* b) {
@@ -1206,14 +1198,26 @@ void ppu_putPixels(Ppu* ppu, uint8_t* pixels) {
       y1 = y + (ppu->evenFrame ? 0 : 239);
       y2 = y1;
     }
-    // Copy line with correct stride
-    memcpy(pixels + (dest * 1024), &ppu->pixelBuffer[y1 * 1024], 1024);
-    memcpy(pixels + ((dest + 1) * 1024), &ppu->pixelBuffer[y2 * 1024], 1024);
+    // Copy line with horizontal doubling
+    uint16_t* src = (uint16_t*)&ppu->pixelBuffer[y1 * 512];
+    uint16_t* dst = (uint16_t*)(pixels + (dest * 512));
+    for(int x = 0; x < 256; x++) {
+      dst[x * 2] = src[x];
+      dst[x * 2 + 1] = src[x];
+    }
+    if(y1 != y2) {
+      src = (uint16_t*)&ppu->pixelBuffer[y2 * 512];
+      dst = (uint16_t*)(pixels + ((dest + 1) * 512));
+      for(int x = 0; x < 256; x++) {
+        dst[x * 2] = src[x];
+        dst[x * 2 + 1] = src[x];
+      }
+    }
   }
   // Clear top 2 lines, and following 14 and last 16 lines if not overscanning
-  memset(pixels, 0, 1024 * 2);
+  memset(pixels, 0, 512 * 2);
   if(!ppu->frameOverscan) {
-    memset(pixels + (2 * 1024), 0, 1024 * 14);
-    memset(pixels + (464 * 1024), 0, 1024 * 16);
+    memset(pixels + (2 * 512), 0, 512 * 14);
+    memset(pixels + (464 * 512), 0, 512 * 16);
   }
-}
+} 
