@@ -403,6 +403,13 @@ static void ppu_handlePixel(Ppu* ppu, int x, int y) {
 
   uint16_t *dest = (uint16_t*)&ppu->pixelBuffer[((y - 1) + (ppu->evenFrame ? 0 : 239)) * 256 * sizeof(uint16_t) + x * sizeof(uint16_t)];
 
+  // Apply brightness to RGB values
+  if (!ppu->forcedBlank) {
+    r = (r * bright_now) >> 16;
+    g = (g * bright_now) >> 16;
+    b = (b * bright_now) >> 16;
+  }
+
   // Convert to RGB565 with proper scaling
   uint16_t rgb565 = ((r & 0x1F) << 11) |  // Red: 5 bits
                     ((g & 0x1F) << 6) |    // Green: 6 bits (shifted by 6 to leave room for blue)
